@@ -23,7 +23,7 @@ export default class HomePage extends Component {
         bookLoading: true,
       }
     }
-  
+
     setAppState=(newState)=>{
       this.setState(newState)
     }
