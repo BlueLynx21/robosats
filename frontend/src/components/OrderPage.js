@@ -1,7 +1,8 @@
 import React, { Component } from "react";
 import { withTranslation} from "react-i18next";
 import {TextField,Chip, Tooltip, Badge, Tab, Tabs, Alert, Paper, CircularProgress, Button , Grid, Typography, List, ListItem, ListItemIcon, ListItemText, ListItemAvatar, Avatar, Divider, Box, LinearProgress, Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle} from "@mui/material"
-import Countdown, { zeroPad, calcTimeDelta } from 'react-countdown';
+import Countdown, { zeroPad } from 'react-countdown';
+import LinearDeterminate from './LinearDeterminate';
 import MediaQuery from 'react-responsive'
 import currencyDict from '../../static/assets/currencies.json';
 
@@ -33,7 +34,7 @@ class OrderPage extends Component {
         openCancel: false,
         openCollaborativeCancel: false,
         openInactiveMaker: false,
-        showContractBox: 1,
+        tabValue: 1,
         orderId: this.props.match.params.orderId,
     };
     this.getOrderDetails(this.props.match.params.orderId);
@@ -177,7 +178,7 @@ class OrderPage extends Component {
     if(this.state.has_range){
     return(
         <Grid containter xs={12} align="center" alignItems="stretch" justifyContent="center" style={{ display: "flex"}}>
-          <this.InactiveMakerDialog/>
+          {this.InactiveMakerDialog()}
           <div style={{maxWidth:120}}>
           <Tooltip placement="top" enterTouchDelay={500} enterDelay={700} enterNextDelay={2000} title={t("Enter amount of fiat to exchange for bitcoin")}>
             <Paper elevation={5} sx={{maxHeight:40}}>
@@ -222,7 +223,7 @@ class OrderPage extends Component {
     }else{
       return(
         <>
-        <this.InactiveMakerDialog/>
+        {this.InactiveMakerDialog()}
         <Button variant='contained' color='primary'
           onClick={this.state.maker_status=='Inactive' ? this.handleClickOpenInactiveMakerDialog : this.takeOrder}>
           {t("Take Order")}
@@ -233,10 +234,10 @@ class OrderPage extends Component {
   }
 
   countdownTakeOrderRenderer = ({ seconds, completed }) => {
-    if(isNaN(seconds)){return (<this.takeOrderButton/>)}
+    if(isNaN(seconds)){return (this.takeOrderButton())}
     if (completed) {
       // Render a completed state
-      return ( <this.takeOrderButton/>);
+      return this.takeOrderButton();
     } else{
       return(
       <Tooltip enterTouchDelay={0} title={t("Wait until you can take an order")}><div>
@@ -244,29 +245,6 @@ class OrderPage extends Component {
       </div></Tooltip>)
     }
   };
-
-  LinearDeterminate =()=> {
-    const [progress, setProgress] = React.useState(0);
-
-    React.useEffect(() => {
-      const timer = setInterval(() => {
-        setProgress((oldProgress) => {
-          var left = calcTimeDelta( new Date(this.state.expires_at)).total /1000;
-          return (left / this.state.total_secs_exp) * 100;
-        });
-      }, 1000);
-
-      return () => {
-        clearInterval(timer);
-      };
-    }, []);
-
-    return (
-      <Box sx={{ width: '100%' }}>
-        <LinearProgress variant="determinate" value={progress} />
-      </Box>
-    );
-  }
 
   takeOrder=()=>{
     this.setState({loading:true})
@@ -445,7 +423,7 @@ class OrderPage extends Component {
       return(
         <div id="openDialogCancelButton">
           <Grid item xs={12} align="center">
-            <this.CancelDialog/>
+            {this.CancelDialog()}
             <Button variant='contained' color='secondary' onClick={this.handleClickOpenConfirmCancelDialog}>{t("Cancel")}</Button>
           </Grid>
         </div>
@@ -456,7 +434,7 @@ class OrderPage extends Component {
     if ([8,9].includes(this.state.status)){
       return(
         <Grid item xs={12} align="center">
-          <this.CollaborativeCancelDialog/>
+          {this.CollaborativeCancelDialog()}
           <Button variant='contained' color='secondary' onClick={this.handleClickOpenCollaborativeCancelDialog}>{t("Collaborative Cancel")}</Button>
         </Grid>
       )}
@@ -610,7 +588,7 @@ class OrderPage extends Component {
                 <Countdown date={new Date(this.state.expires_at)} renderer={this.countdownRenderer} />
               </ListItemText>
             </ListItem>
-            <this.LinearDeterminate />
+              <LinearDeterminate total_secs_exp={this.state.total_secs_exp} expires_at={this.state.expires_at}/>
             </List>
 
             {/* If the user has a penalty/limit */}
@@ -656,8 +634,8 @@ class OrderPage extends Component {
           {/* Participants can see the "Cancel" Button, but cannot see the "Back" or "Take Order" buttons */}
           {this.state.is_participant ?
             <>
-              <this.CancelButton/>
-              <this.BackButton/>
+              {this.CancelButton()}
+              {this.BackButton()}
             </>
           :
             <Grid container spacing={1}>
@@ -696,27 +674,21 @@ class OrderPage extends Component {
 
   doubleOrderPagePhone=()=>{
     const { t } = this.props;
-    const [value, setValue] = React.useState(this.state.showContractBox);
-
-    const handleChange = (event, newValue) => {
-      this.setState({showContractBox:newValue})
-      setValue(newValue);
-    };
 
     return(
       <Box sx={{ width: '100%'}}>
         <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
-          <Tabs value={value} onChange={handleChange} variant="fullWidth" >
-            <Tab label={t("Order")} {...this.a11yProps(0)} />
-            <Tab label={t("Contract")} {...this.a11yProps(1)} />
+          <Tabs value={this.state.tabValue} variant="fullWidth" >
+            <Tab label={t("Order")} {...this.a11yProps(0)} onClick={() => this.setState({tabValue:0})}/>
+            <Tab label={t("Contract")} {...this.a11yProps(1)} onClick={() => this.setState({tabValue:1})}/>
           </Tabs>
         </Box>
         <Grid container spacing={2}>
           <Grid item >
-            <div style={{ width:330, display: this.state.showContractBox == 0 ? '':'none'}}>
+            <div style={{ width:330, display: this.state.tabValue == 0 ? '':'none'}}>
                 {this.orderBox()}
             </div>
-            <div style={{display: this.state.showContractBox == 1 ? '':'none'}}>
+            <div style={{display: this.state.tabValue == 1 ? '':'none'}}>
               <TradeBox push={this.props.history.push} getOrderDetails={this.getOrderDetails} pauseLoading={this.state.pauseLoading} width={330} data={this.state} completeSetState={this.completeSetState} />
             </div>
           </Grid>
@@ -741,12 +713,12 @@ class OrderPage extends Component {
           <>
             {/* Desktop View */}
             <MediaQuery minWidth={920}>
-              <this.doubleOrderPageDesktop/>
+              {this.doubleOrderPageDesktop()}
             </MediaQuery>
 
             {/* SmarPhone View */}
             <MediaQuery maxWidth={919}>
-              <this.doubleOrderPagePhone/>
+              {this.doubleOrderPagePhone()}
             </MediaQuery>
           </>
           :

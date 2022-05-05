@@ -157,7 +157,7 @@ class BookPage extends Component {
           NoRowsOverlay: () => (
             <Stack height="100%" alignItems="center" justifyContent="center">
               <div style={{ height:"220px"}}/>
-              <this.NoOrdersFound/>
+              {this.NoOrdersFound()}
             </Stack>
           ),
           NoResultsOverlay: () => (
@@ -258,7 +258,7 @@ class BookPage extends Component {
           NoRowsOverlay: () => (
             <Stack height="100%" alignItems="center" justifyContent="center">
               <div style={{ height:"220px"}}/>
-              <this.NoOrdersFound/>
+              {this.NoOrdersFound()}
             </Stack>
           ),
           NoResultsOverlay: () => (
@@ -420,20 +420,20 @@ class BookPage extends Component {
           }
 
         { this.props.notFound ?
-          <this.NoOrdersFound/>
+          this.NoOrdersFound()
           :
           <Grid item xs={12} align="center">
             {/* Desktop Book */}
             <MediaQuery minWidth={930}>
               <Paper elevation={0} style={{width: 925, maxHeight: 500, overflow: 'auto'}}>
-                  <this.bookListTableDesktop/>
+                  {this.bookListTableDesktop()}
               </Paper>
             </MediaQuery>
 
             {/* Smartphone Book */}
             <MediaQuery maxWidth={929}>
               <Paper elevation={0} style={{width: 395, maxHeight: 450, overflow: 'auto'}}>
-                  <this.bookListTablePhone/>
+                  {this.bookListTablePhone()}
               </Paper>
             </MediaQuery>
            </Grid>
